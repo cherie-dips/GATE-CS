@@ -4,7 +4,7 @@ A subject-wise bank of **GATE CSE previous-year questions (1987–2026)**, plus 
 Every question has a cross-checked answer and a worked explanation. A local web app lets you solve the questions and
 tracks your progress.
 
-**Live site:** <https://cherie-dips.github.io/gate-cse-pyq-bank/>. On the hosted site your progress is kept in the
+**Live site:** <https://cherie-dips.github.io/GATE-CS/>. On the hosted site your progress is kept in the
 browser's local storage, so use **Progress tracker → Export progress** to back it up or move it to another device.
 Running it locally (below) saves progress to a file instead.
 
