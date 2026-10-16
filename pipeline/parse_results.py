@@ -108,6 +108,8 @@ def main():
                     results[qid] = rec
                     seen.add(qid)
                     continue
+                # "DUPLICATE_OF: none" must not survive as a truthy field (make_adjudication skips duplicates)
+                rec.pop('duplicate_of', None)
                 qtype = (f.get('TYPE') or '').strip().upper()
                 rec['type'] = qtype
                 if qtype not in VALID_TYPES:

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Content from '../components/Content.jsx';
-import { Badge, Icon } from '../components/ui.jsx';
+import { Icon, Tag } from '../components/ui.jsx';
 import { answerLabel, grade, sortList, TYPE_LABELS } from '../lib/data.js';
 import { abandonTest, finishTest, saveTest } from '../lib/progress.js';
+import { preview } from '../components/QuestionList.jsx';
 import { href } from '../lib/router.js';
 
 const SCORABLE = new Set(['MCQ', 'MSQ', 'NAT', 'TF']);
@@ -44,21 +45,20 @@ export default function TestView({ bank, progress, paperId }) {
   }
 
   return (
-    <div className="test-start">
+    <div className="practice">
+      <a className="back" href="#/papers">
+        <Icon name="left" size={14} /> Papers
+      </a>
       <div className="page-head">
         <div>
-          <div className="crumbs">
-            <a href="#/papers">Papers</a> / Mock test
-          </div>
-          <h1>{paperId} — mock test</h1>
-          <p className="muted">
-            {questions.length} questions · {scorableQs.length} auto-scored ({maxMarks} marks)
-            {questions.length > scorableQs.length && ` · ${questions.length - scorableQs.length} descriptive/fill-in questions are shown but not scored`}
+          <h1>{paperId}</h1>
+          <p className="sub">
+            Mock test · {questions.length} questions · {scorableQs.length} auto-scored ({maxMarks} marks)
+            {questions.length > scorableQs.length && ` · ${questions.length - scorableQs.length} descriptive or fill-in questions are shown but not scored`}
           </p>
         </div>
       </div>
-      <div className="card">
-        <h2>Exam conditions</h2>
+      <div>
         <ul className="rules">
           <li>No answers or explanations are shown until you submit.</li>
           <li>Marking: MCQ wrong answers carry negative marks as in the paper (usually ⅓ of the question's marks); MSQ and numerical answers have no negative marking.</li>
@@ -66,29 +66,28 @@ export default function TestView({ bank, progress, paperId }) {
           <li>Your answers are saved continuously — you can close the tab and resume later.</li>
           <li>On submit, every answered question is recorded in your progress tracker.</li>
         </ul>
-        <div className="action-row">
-          <label className="inline-field">
-            Duration
-            <select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
+        <div className="actions">
+          <select className="select" value={duration} onChange={(e) => setDuration(Number(e.target.value))} aria-label="Duration">
               <option value={180}>180 minutes (GATE)</option>
               <option value={120}>120 minutes</option>
               <option value={90}>90 minutes</option>
               <option value={60}>60 minutes</option>
               <option value={0}>No time limit</option>
-            </select>
-          </label>
+          </select>
           <button className="btn primary" onClick={() => saveTest(paperId, { startedAt: Date.now(), durationMs: duration * 60000, answers: {}, marked: {}, visited: {}, cur: 0 })}>
-            <Icon name="play" /> Start test
+            <Icon name="play" size={14} /> Start test
           </button>
-          <a className="btn" href={href('/list', `p=${encodeURIComponent(paperId)}&sort=paper`)}>
-            Practise this paper question-by-question instead
+          <a className="btn ghost" href={href('/list', `p=${encodeURIComponent(paperId)}&sort=paper`)}>
+            Practise question by question instead
           </a>
         </div>
       </div>
       {history.length > 0 && (
-        <div className="card mt">
-          <h2>Previous attempts</h2>
-          <table className="simple-table">
+        <section className="section">
+          <div className="section-head">
+            <h2>Previous attempts</h2>
+          </div>
+          <table className="table">
             <thead>
               <tr>
                 <th>Date</th>
@@ -106,15 +105,15 @@ export default function TestView({ bank, progress, paperId }) {
                   <td className="num">
                     <b>{Math.round(h.score * 100) / 100}</b> / {h.max}
                   </td>
-                  <td className="num good">{h.correct}</td>
-                  <td className="num bad">{h.wrong}</td>
+                  <td className="num good-text">{h.correct}</td>
+                  <td className="num bad-text">{h.wrong}</td>
                   <td className="num">{h.skipped}</td>
                   <td className="num">{Math.round(h.ms / 60000)} min</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
       )}
     </div>
   );
@@ -196,17 +195,14 @@ function TestRunner({ bank, paperId, questions, test, onSubmit }) {
   const sel = Array.isArray(resp) ? resp : [];
 
   return (
-    <div className="test-runner">
-      <div className="test-bar card">
+    <div>
+      <div className="test-bar">
         <strong>{paperId}</strong>
         <span className="muted small">
-          Answered {Object.keys(answers).length}/{questions.length} · Marked {Object.keys(marked).length}
+          {Object.keys(answers).length} / {questions.length} answered · {Object.keys(marked).length} marked
         </span>
-        <span className="grow" />
+        <span className="spacer" />
         {remaining != null && <span className={`clock ${remaining < 10 * 60000 ? 'low' : ''}`}>{fmtClock(remaining)}</span>}
-        <button className="btn primary" onClick={() => submit(false)}>
-          Submit test
-        </button>
         <button
           className="btn ghost small"
           onClick={() => {
@@ -215,24 +211,37 @@ function TestRunner({ bank, paperId, questions, test, onSubmit }) {
         >
           Abandon
         </button>
+        <button className="btn primary small" onClick={() => submit(false)}>
+          Submit test
+        </button>
       </div>
       <div className="test-grid">
-        <article className="card qcard">
-          <header className="qcard-head">
-            <div className="qcard-meta">
-              <span className="paper-badge">Question {cur + 1}{q.n ? ` (Q.${q.n})` : ''}</span>
-              <Badge tone="accent">{TYPE_LABELS[q.t] || q.t}</Badge>
-              {q.m ? <Badge>+{q.m}{(q.t === 'MCQ' || q.t === 'TF') && q.neg ? ` / −${q.neg}` : ''}</Badge> : null}
-              {!scorable(q) && <Badge tone="warn">not scored</Badge>}
-            </div>
-          </header>
-          <div className="qbody">
+        <article>
+          <div className="qmeta">
+            <span className="paper">
+              Question {cur + 1}
+              {q.n ? ` (Q.${q.n})` : ''}
+            </span>
+            <span>{TYPE_LABELS[q.t] || q.t}</span>
+            {q.m ? (
+              <span className="num">
+                +{q.m}
+                {(q.t === 'MCQ' || q.t === 'TF') && q.neg ? ` / −${q.neg}` : ''}
+              </span>
+            ) : null}
+            {!scorable(q) && <Tag tone="warn">Not scored</Tag>}
+          </div>
+          <div className="qtext">
             {q.qf === 'md' ? <Content md={q.q} /> : <Content html={q.q} />}
-            {q.scan && q.fig && <img className="scan-inline" src={q.scan} alt="Original question" />}
+            {q.scan && q.fig && (
+              <div className="scan">
+                <img src={q.scan} alt="Original question" />
+              </div>
+            )}
           </div>
           {q.o?.length > 0 && (
             <div className="options">
-              {isMulti && <div className="muted small">Select all options that are correct.</div>}
+              {isMulti && <div className="hint">Select every correct option.</div>}
               {q.o.map((o, i) => {
                 const picked = sel.includes(i);
                 return (
@@ -249,30 +258,30 @@ function TestRunner({ bank, paperId, questions, test, onSubmit }) {
             </div>
           )}
           {q.t === 'NAT' && (
-            <div className="nat">
-              <label htmlFor="tnat">Your answer</label>
-              <input id="tnat" inputMode="decimal" value={typeof resp === 'string' ? resp : ''} onChange={(e) => setResp(e.target.value)} placeholder="Enter a number" />
-            </div>
+            <label className="answer-field">
+              Your answer
+              <input className="input" inputMode="decimal" value={typeof resp === 'string' ? resp : ''} onChange={(e) => setResp(e.target.value)} placeholder="Enter a number" />
+            </label>
           )}
-          {!scorable(q) && <p className="muted small qbody">Descriptive / fill-in question — attempt it on paper; review the solution after submitting.</p>}
+          {!scorable(q) && <p className="hint">Descriptive or fill-in question: attempt it on paper, then review the solution after you submit.</p>}
           <div className="qactions">
             <button className="btn ghost" disabled={cur === 0} onClick={() => setCur(cur - 1)}>
-              <Icon name="left" /> Prev
+              <Icon name="left" /> Previous
             </button>
             <button className="btn" onClick={() => setResp(null)} disabled={resp == null}>
-              Clear response
+              Clear
             </button>
-            <button className={`btn ${marked[q.id] ? 'marked' : ''}`} onClick={toggleMark}>
-              <Icon name="flag" /> {marked[q.id] ? 'Unmark' : 'Mark for review'}
+            <button className={`btn${marked[q.id] ? ' on' : ''}`} onClick={toggleMark}>
+              <Icon name="flag" size={15} /> {marked[q.id] ? 'Unmark' : 'Mark for review'}
             </button>
-            <span className="grow" />
+            <span className="spacer" />
             <button className="btn primary" disabled={cur === questions.length - 1} onClick={() => setCur(cur + 1)}>
               Save &amp; next <Icon name="right" />
             </button>
           </div>
         </article>
-        <aside className="card palette">
-          <h3>Question palette</h3>
+        <aside className="palette">
+          <h2>Questions</h2>
           <div className="palette-grid">
             {questions.map((x, i) => {
               const st = answers[x.id] != null ? 'answered' : visited[x.id] ? 'visited' : 'fresh';
@@ -283,11 +292,19 @@ function TestRunner({ bank, paperId, questions, test, onSubmit }) {
               );
             })}
           </div>
-          <div className="palette-legend small muted">
-            <span><i className="pal answered" /> answered</span>
-            <span><i className="pal visited" /> not answered</span>
-            <span><i className="pal fresh" /> not visited</span>
-            <span><i className="pal marked" /> marked</span>
+          <div className="palette-legend">
+            <span>
+              <i className="answered" /> Answered
+            </span>
+            <span>
+              <i /> Seen
+            </span>
+            <span>
+              <i className="fresh" /> Not seen
+            </span>
+            <span>
+              <i className="marked" /> Marked
+            </span>
           </div>
         </aside>
       </div>
@@ -309,26 +326,28 @@ function TestResult({ bank, paperId, questions, result }) {
   });
   const qs = `p=${encodeURIComponent(paperId)}&sort=paper`;
   return (
-    <div className="test-result">
+    <div className="practice">
+      <a className="back" href="#/papers">
+        <Icon name="left" size={14} /> Papers
+      </a>
       <div className="page-head">
         <div>
-          <div className="crumbs">
-            <a href="#/papers">Papers</a> / Result
-          </div>
           <h1>
             {paperId}: {result.score} / {result.max}
           </h1>
-          <p className="muted">
+          <p className="sub">
             {result.correct} correct · {result.wrong} wrong · {result.skipped} skipped · {Math.round(result.ms / 60000)} minutes
           </p>
         </div>
-        <a className="btn primary" href={`#/test/${encodeURIComponent(paperId)}`} onClick={() => window.location.reload()}>
+        <a className="btn" href={`#/test/${encodeURIComponent(paperId)}`} onClick={() => window.location.reload()}>
           Back to paper
         </a>
       </div>
-      <div className="card">
-        <h2>By subject</h2>
-        <table className="simple-table">
+      <section>
+        <div className="section-head">
+          <h2>By subject</h2>
+        </div>
+        <table className="table">
           <thead>
             <tr>
               <th>Subject</th>
@@ -345,40 +364,46 @@ function TestResult({ bank, paperId, questions, result }) {
                 <td className="num">
                   <b>{Math.round(s.score * 100) / 100}</b> / {s.max}
                 </td>
-                <td className="num good">{s.correct}</td>
-                <td className="num bad">{s.wrong}</td>
+                <td className="num good-text">{s.correct}</td>
+                <td className="num bad-text">{s.wrong}</td>
                 <td className="num">{s.skipped}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-      <div className="card mt">
-        <h2>Question review</h2>
+      </section>
+      <section className="section">
+        <div className="section-head">
+          <h2>Questions</h2>
+        </div>
         <div className="qlist">
           {questions.map((q, i) => {
             const r = result.rows[i];
             const yours = r.response == null ? '—' : Array.isArray(r.response) ? r.response.map((x) => String.fromCharCode(65 + x)).join(', ') : String(r.response);
             return (
-              <a key={q.id} className={`qrow st-${r.status}`} href={href(`/q/${q.id}`, qs)}>
-                <span className="qrow-idx">{i + 1}</span>
-                <span className={`dot dot-${r.status === 'correct' ? 'correct' : r.status === 'wrong' ? 'wrong' : 'new'}`} />
-                <div className="qrow-body">
-                  <div className="qrow-text">{q._preview}</div>
-                  <div className="qrow-meta">
-                    <Badge tone={r.status === 'correct' ? 'good' : r.status === 'wrong' ? 'bad' : 'neutral'}>
-                      {r.status === 'unscored' ? 'not scored' : `${r.marks > 0 ? '+' : ''}${Math.round(r.marks * 100) / 100}`}
-                    </Badge>
-                    <span className="small">
-                      Your answer: <b>{yours}</b> · Correct: <b><Content md={answerLabel(q)} inline /></b>
+              <a key={q.id} className="qrow" href={href(`/q/${q.id}`, qs)}>
+                <span className={`dot ${r.status === 'correct' ? 'correct' : r.status === 'wrong' ? 'wrong' : 'new'}`} />
+                <span className="qrow-body">
+                  <span className="qrow-text">
+                    {i + 1}. {preview(q)}
+                  </span>
+                  <span className="qrow-meta">
+                    <span className={r.status === 'correct' ? 'good-text' : r.status === 'wrong' ? 'bad-text' : ''}>
+                      {r.status === 'unscored' ? 'Not scored' : `${r.marks > 0 ? '+' : ''}${Math.round(r.marks * 100) / 100}`}
                     </span>
-                  </div>
-                </div>
+                    <span>
+                      Yours: <b>{yours}</b>
+                    </span>
+                    <span>
+                      Correct: <b><Content md={answerLabel(q)} inline /></b>
+                    </span>
+                  </span>
+                </span>
               </a>
             );
           })}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

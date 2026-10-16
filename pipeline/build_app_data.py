@@ -239,6 +239,14 @@ for r in base:
     elif res and res.get('answer'):
         ans_txt = res['answer']
         ans_src = 'review'
+        if (res.get('verdict') or '').strip() == 'disagree':
+            # overruling the source key needs the second, independent check; until it exists, grade with the key
+            key = key_answer({**r, 'type': q['t']})
+            if key is None and q['t'] == 'TF':
+                key = (r['keys'].get('gateoverflow') or r['keys'].get('examside') or '').strip() or None
+            if key and encode_answer(q['t'], key, len(q.get('o') or [])):
+                ans_txt, ans_src = key, 'key-disputed'
+                stats['disputed_kept_key'] += 1
     else:
         ans_txt = key_answer(r) if r['src'] == 'examside' else None
         ans_src = 'key'
@@ -310,6 +318,9 @@ for r in base:
         n = (res.get('note') or '').strip()
         if n and n.lower() != 'none':
             note = n
+    if ans_src == 'key-disputed':
+        note = (f"Disputed: the worked solution below concludes {res['answer']}, but the answer key gives {ans_txt}. "
+                f"This has not had its second check yet, so grading uses the key. {note}").strip()
     if note:
         q['note'] = note
     q['v'] = verdict or ('key-only' if ans_src == 'key' else '')
@@ -335,11 +346,27 @@ for r in base:
             q['n'] = ovr['n']
         if 'note' in ovr:
             q['note'] = ovr['note']
+        if 'type' in ovr:
+            q['t'] = ovr['type']
+            if ovr['type'] in ('DESC', 'NAT', 'FIB'):
+                q.pop('o', None)
+        for old, new in ovr.get('qsub', []):
+            # literal replacements in the question text; a miss means the source text changed
+            assert old in q['q'], (r['id'], old)
+            q['q'] = q['q'].replace(old, new)
+        for letter, text in ovr.get('options', {}).items():
+            i = ord(letter) - 65
+            q['o'] = q['o'] + [''] * (i + 1 - len(q['o']))
+            q['o'][i] = text
         if 'answer' in ovr:
-            q['a'] = encode_answer(q['t'], ovr['answer'], len(q['o'])) or q['a']
+            q['a'] = encode_answer(q['t'], ovr['answer'], len(q.get('o') or [])) or q.get('a')
         if 'chapter' in ovr and ovr['chapter'] in CHAPTER_INDEX:
             q['s'], q['c'] = CHAPTER_INDEX[ovr['chapter']][0], ovr['chapter']
         stats['override'] += 1
+    # pre-2000 papers allowed several correct options; later MCQs with several accepted options are official 'either' keys
+    if q['t'] == 'MCQ' and len((q.get('a') or {}).get('opts') or []) > 1 and (q.get('y') or 0) < 2000:
+        q['t'] = 'MSQ'
+        stats['mcq_to_msq'] += 1
     q = {k: v for k, v in q.items() if v not in (None, '', [], False)}
     out.append(q)
     stats['questions'] += 1

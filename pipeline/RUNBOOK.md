@@ -15,6 +15,18 @@ Expensive artifacts are mirrored into `pipeline/work/` by `sync_work.sh`.
 - `python3 pipeline/status.py $S 4` shows progress and the next batches to launch (tracked in `$S/launched.txt`).
 - An agent that stops early: re-launch with the same instructions. It must skip ids already present in the
   results file. Add that note to the prompt.
+- Disputed-only pass (2026-10-16): `python3 -I pipeline/make_disputed_batches.py $S` moved every unreviewed
+  ExamSIDE question whose keys conflict or are missing, plus numeric-range and descriptive ones, into `dsp_NNN`
+  review batches (405 questions, 12 batches); then run `render_prompts.py $S`. Those ids stay in their old `es_NNN`
+  batches, so a later run of `es_033`+ must skip the ids that already have a block in `results/dsp_*.txt`.
+- The GATE Overflow key often uses a different option order (2019–2021 especially). Tell agents to match options by
+  content before they report a conflict.
+- Remaining pass (2026-10-17): `make_disputed_batches.py $S 34 --rest` put the other 1,153 unreviewed ExamSIDE
+  questions into `rem_NNN` batches. The `go_NNN` transcription batches were resumed in place.
+- Agents share the scratch dir. Give each one its own work folder for helper scripts (one agent overwrote another's).
+  Inside math, the end-marker `$` must be written `\text{\textdollar}`, because the app's renderer splits math on `$`.
+- Tell agents to append each block to the output file as soon as it is written. The adjudication and text-fix
+  agents stopped on 2026-10-17 had written nothing yet, so all their work was lost.
 
 ## 3. Adjudication (second opinion)
 ```
@@ -30,7 +42,14 @@ python3 -I pipeline/make_textfix.py $S $S/results.json        # incremental; fix
 # launch one agent per fix batch; outputs fix_results/fix_NNN.txt
 python3 -I pipeline/parse_textfix.py $S $S/textfixes.json
 ```
-Second-pass launches are tracked in `$S/second_pass_launched.txt`.
+Second-pass launches are tracked in `$S/second_pass_launched.txt`. Before 2026-10-17, `parse_results.py` stored
+`DUPLICATE_OF: none` as a truthy field, so `make_adjudication.py` skipped every transcribed (`go_`) question. That is
+fixed; the 62 such questions it now selects are in `adj_016`–`adj_019`.
+If the build has no adjudication for a question where the reviewer said `disagree`, it grades with the source key and
+adds a *Disputed* note, because overruling a key needs the second check. Text problems that only the adjudicators notice
+are not picked up by `make_textfix.py`. Fix those by hand in `pipeline/overrides.json`, which supports `qsub`,
+`options`, `type`, `answer`, `chapter`, `n` and `note`. The text-fix parser also rejects a fix that changes the
+number of options, so restore a missing option E through `options` too.
 
 ## 3c. Official answer keys (2022–2026)
 Official final keys and question papers from the IIT Guwahati GATE archive (https://gate2026.iitg.ac.in/download.html)

@@ -5,7 +5,7 @@ Every question has a cross-checked answer and a worked explanation. A local web 
 tracks your progress.
 
 **Live site:** <https://cherie-dips.github.io/GATE-CS/>. On the hosted site your progress is kept in the
-browser's local storage, so use **Progress tracker → Export progress** to back it up or move it to another device.
+browser's local storage, so use **Progress → Export progress** to back it up or move it to another device.
 Running it locally (below) saves progress to a file instead.
 
 ## Run it
@@ -17,44 +17,51 @@ npm start         # serves http://localhost:5178
 
 Open <http://localhost:5178>. Your progress is saved to `data/progress.json`. The previous save is kept as
 `data/progress.json.bak`, and a copy is mirrored in the browser's localStorage. You can export or import progress
-from **Progress tracker → Settings & data**.
+from **Progress → Your data**.
 
 `npm run dev` runs a Vite dev server on :5173 with hot reload. Keep `npm start` running alongside it so progress
 still gets saved.
 
-## Status (generation stopped early, 2026-10-15)
+## Status (2026-10-17)
 
-The review run was stopped before it finished, to save tokens. The bank has **3,700 questions**:
+The bank has **3,692 questions**. Every question has a worked explanation and an answer that was solved independently
+and checked against the source keys. Questions that existed only as scans in the GATE Overflow book are transcribed to
+text. Disputed answers went to a second, independent check (adjudication), and text errors were fixed against the
+original scans.
 
-| State | Questions | What you get |
-|---|---|---|
-| Reviewed | 1,858 | Answer independently re-solved and cross-checked, a worked explanation, disputes adjudicated, text errors fixed |
-| Unreviewed, with source explanation | 488 | Source answer key + the ExamSIDE explanation (badge: *Unverified key*) |
-| Unreviewed, key only | 1,070 | Source answer key, no explanation yet (badge: *Unverified key*) |
-| Scan only | 284 | Original question image + GATE Overflow key, no explanation yet (badge: *Scan only*) |
+The run was stopped before the last part of the second pass finished:
+
+- **82 flagged questions have not had their second check** (`adj_014`, `adj_016`–`adj_018`, `adj_020`). They are
+  ambiguous, medium-confidence or single-key answers, plus 9 where the reviewer disagreed with the key. In 8 of those 9,
+  the app grades with the key and shows the reviewer's objection as a *Disputed* note.
+- **87 text and chapter fixes from the last batches are not applied** (`fix_010`–`fix_013`).
 
 All 520 questions from GATE 2022–2026 match the official IIT answer keys, which the build applies automatically
-(badge: *Official key*). To finish the remaining batches later, follow `pipeline/RUNBOOK.md`: completed work is
-saved in `pipeline/work/`, and re-launched batches skip items that are already done.
+(badge: *Official key*). To finish the second pass, follow `pipeline/RUNBOOK.md`. Completed work is saved in
+`pipeline/work/`, and re-launched batches skip items that are already done.
 
 ## What's inside the app
 
-- **Dashboard**: overall coverage, accuracy, first-try accuracy, streak, time spent, per-subject progress bars, an
-  activity heatmap, and review queues.
-- **Subjects → chapters**: progress per chapter and the weightage trend for each subject, with a practice button
-  for every chapter.
-- **Question lists** with filters for subject, chapter, year range, type (MCQ / MSQ / NAT / descriptive …), marks,
-  status (unsolved / correct / incorrect / bookmarked / to revise / has notes), CSE vs IT papers,
-  current-syllabus-only, and full-text search.
+The top bar has four sections:
+
+- **Practice**: overall progress, *Continue where you left off*, a random unsolved question, and the subject list.
+  A subject opens its chapters, and a chapter opens its questions.
+- **Question lists**: search, status and type filters. The *Filters* panel adds subject, chapter, year range,
+  marks, CSE vs IT papers, current syllabus only, and sort order.
 - **Practice mode**:
   - MCQ and MSQ are auto-graded, and numerical answers are graded against the official range.
   - Descriptive and fill-in-the-blank questions are self-graded after you reveal the solution.
-  - Each question has a timer, bookmarks, a "revise later" flag, and personal notes.
+  - Each question has a timer, a bookmark, a "revise later" flag, and personal notes.
   - Questions transcribed from scans also show the original question image.
   - Keyboard shortcuts: `A–D` select, `Enter` check / next, `←/→` navigate, `S` solution, `B` bookmark, `R` revise.
-- **Year-wise papers**: solve any paper in exam order.
-- **Progress tracker**: a subject → chapter table (done, correct, wrong, accuracy, time), paper-wise coverage, the
-  last 14 days of activity, and settings.
+- **Papers**: every paper by year. Solve it question by question, or take it as a timed mock test with GATE
+  marking and a question palette.
+- **Review**: your mistakes, bookmarks, questions flagged for revision, and questions with notes.
+- **Progress**: questions solved, accuracy, streak and practice time; a subject → chapter breakdown; settings;
+  and export / import / reset of your progress.
+
+The app has a light and a dark theme. It follows the system setting by default; change it with the button in the top
+bar or under Progress → Settings.
 
 ## How the bank was built (`pipeline/`)
 

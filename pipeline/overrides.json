@@ -15,5 +15,57 @@
     "ignore_adjudication": true,
     "reason": "GATE 2004 Q76: keep the accepted answer (D) and explain the alternative 'line cover' reading in the note.",
     "note": "Intended reading (and the accepted answer): every non-zero entry lies in the a × b submatrix formed by those a rows and b columns, so at most min{a, b} independent entries exist. If \"covered\" is read as a line cover (each non-zero entry lies in one of the a rows or one of the b columns), only ≤ a + b is guaranteed (König–Egerváry)."
+  },
+  "es_40599udkwrzvt3u": {
+    "options": {
+      "D": "OUT(S<sub>1</sub>) = IN(S<sub>2</sub>) ∪ OUT(S<sub>2</sub>)"
+    },
+    "reason": "Option (D) was mistranscribed as IN(S2) ∪ USE(S2), which would also be true; the original paper reads IN(S2) ∪ OUT(S2) (adj_006)."
+  },
+  "es_Bc0jjhHeL9Zb9rgX": {
+    "options": {
+      "C": "Find the names of all suppliers who have supplied only non-blue parts."
+    },
+    "reason": "Option (C) mistranscribed as 'only blue parts'; the original reads 'only non-blue parts' (adj_008)."
+  },
+  "es_x890GIaJNf3T9SO1": {
+    "qsub": [
+      [
+        "but to compaction",
+        "but no compaction"
+      ]
+    ],
+    "reason": "Typo in source text: 'but to compaction' for 'but no compaction' (adj_010)."
+  },
+  "es_s8Nb6ioCh7J0Sbv1": {
+    "qsub": [
+      [
+        "It is decidable whether",
+        "It is undecidable whether"
+      ]
+    ],
+    "options": {
+      "A": "An arbitrary Turing machine halts after 100 steps."
+    },
+    "reason": "Stored text said 'decidable' and '10 steps'; the original 1990 paper reads 'undecidable' and '100 steps'. The adjudicated answer (B, C) is for the original wording (adj_012)."
+  },
+  "es_S5Zz0QRSQUbhpQmG": {
+    "answer": "B, C, D, E",
+    "reason": "Option (C) was printed as O(m^3), a typo for O(n^3); the original also had option E, O(1.5n^2), which is likewise a correct upper bound, so the answer is B, C, D, E (adj_006, fix_006).",
+    "options": {
+      "C": "O(n<sup>3</sup>)",
+      "E": "O(1.5n<sup>2</sup>)"
+    }
+  },
+  "es_xENQaewaTyOJ6JIW": {
+    "type": "DESC",
+    "answer": "R − (R − S)",
+    "reason": "Descriptive question (relational algebra expression) that the source tagged as True/False (dsp_004)."
+  },
+  "es_ZDMExAwA0QavGV6f": {
+    "options": {
+      "E": "none of the above"
+    },
+    "reason": "Restores the original option E, which the source omitted; the answer (B) is unchanged (fix_004)."
   }
 }
