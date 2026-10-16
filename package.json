@@ -1,0 +1,13 @@
+{
+  "name": "gate-cse-question-bank",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Subject-wise GATE CSE previous year question bank with answers, explanations and a progress tracker.",
+  "scripts": {
+    "setup": "cd app && npm install && npm run build",
+    "build": "cd app && npm run build",
+    "start": "node server.js",
+    "dev": "cd app && npm run dev"
+  }
+}

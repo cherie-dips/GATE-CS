@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output — GitHub Pages is built from source by .github/workflows/deploy.yml
+app/dist/
+
+# Personal progress (written by server.js) — never commit
+data/progress.json
+data/progress.json.bak
+data/progress.json.tmp
+
+# Pipeline intermediates: scraped sources, agent batches/results, caches (large; kept locally)
+pipeline/work/
+__pycache__/
+*.py[cod]
+
+# Logs and environment
+*.log
+npm-debug.log*
+.env
+.env.*
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

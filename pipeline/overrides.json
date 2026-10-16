@@ -1,0 +1,19 @@
+{
+  "es_baorUxDETDHp2Dgm": {
+    "ignore_adjudication": true,
+    "n": "74",
+    "reason": "Stored text asks for h1 (answer A, 2.4 ns); that is Q74 of the original paper. ExamSIDE had swapped the Q74/Q75 labels of this linked pair, so the number is corrected instead of the text.",
+    "note": "In the original paper this linked-question pair is Q74 (value of h1, this one) and Q75 (value of h2)."
+  },
+  "es_C9XjMQ74tb97LzZL": {
+    "ignore_adjudication": true,
+    "n": "75",
+    "reason": "Stored text asks for h2 (answer D, 1.7 ns); that is Q75 of the original paper (labels were swapped at the source).",
+    "note": "In the original paper this linked-question pair is Q74 (value of h1) and Q75 (value of h2, this one)."
+  },
+  "es_JKmdV5finxyMbRUc": {
+    "ignore_adjudication": true,
+    "reason": "GATE 2004 Q76: keep the accepted answer (D) and explain the alternative 'line cover' reading in the note.",
+    "note": "Intended reading (and the accepted answer): every non-zero entry lies in the a × b submatrix formed by those a rows and b columns, so at most min{a, b} independent entries exist. If \"covered\" is read as a line cover (each non-zero entry lies in one of the a rows or one of the b columns), only ≤ a + b is guaranteed (König–Egerváry)."
+  }
+}
