@@ -3,12 +3,14 @@ import { pct, fmtTime } from '../lib/data.js';
 import { dayKey, exportProgress, importProgress, resetProgress, setSetting, streak, useSaveStatus } from '../lib/progress.js';
 import { href } from '../lib/router.js';
 import { Bar, Icon } from '../components/ui.jsx';
+import { signIn, signOutCloud, syncNow, useCloud } from '../lib/cloud.js';
 
 export default function Progress({ bank, progress, stats }) {
   const [open, setOpen] = useState({});
   const fileRef = useRef(null);
   const settings = progress.settings || {};
   const { serverOk } = useSaveStatus();
+  const cloud = useCloud();
   const { overall } = stats;
   const days = streak(progress);
   const theme = settings.theme || 'system';
@@ -117,13 +119,20 @@ export default function Progress({ bank, progress, stats }) {
         </label>
       </section>
 
+      <SyncPanel />
+
       <section className="section">
         <div className="section-head">
           <h2>Your data</h2>
         </div>
         <p className="muted small">
-          {serverOk === false ? (
-            <>Progress is stored in this browser only. Export it regularly as a backup, and import it to continue on another device.</>
+          {cloud.user ? (
+            <>Progress is saved in this browser and synced to your Google account. Export makes a backup file.</>
+          ) : serverOk === false ? (
+            <>
+              Progress is stored in this browser only.{' '}
+              {cloud.status === 'off' ? 'Export it regularly as a backup, and import it to continue on another device.' : 'Sign in above to sync it, or export it as a backup.'}
+            </>
           ) : (
             <>
               Progress is saved to <code>data/progress.json</code> in the project folder (with a <code>.bak</code> of the previous save) and mirrored in this browser.
@@ -152,6 +161,59 @@ export default function Progress({ bank, progress, stats }) {
         </p>
       </section>
     </div>
+  );
+}
+
+function SyncPanel() {
+  const c = useCloud();
+  if (c.status === 'off') return null;
+  let body;
+  if (!c.user) {
+    body = (
+      <>
+        <p className="muted">Sign in with Google to keep your progress in sync on your phone, laptop and other devices.</p>
+        <div className="actions">
+          <button className="btn primary" onClick={signIn} disabled={c.status === 'loading'}>
+            Sign in with Google
+          </button>
+        </div>
+      </>
+    );
+  } else {
+    const state =
+      c.status === 'syncing'
+        ? 'Syncing…'
+        : c.status === 'offline'
+          ? 'Offline: changes will sync when you are back online.'
+          : c.status === 'error'
+            ? 'Could not sync.'
+            : c.lastSync
+              ? `Synced at ${new Date(c.lastSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
+              : '';
+    body = (
+      <>
+        <p>
+          Signed in as <b>{c.user.email || c.user.name}</b>. <span className="muted">{state}</span>
+        </p>
+        <div className="actions">
+          <button className="btn" onClick={syncNow} disabled={c.status === 'syncing'}>
+            Sync now
+          </button>
+          <button className="btn ghost" onClick={signOutCloud}>
+            Sign out
+          </button>
+        </div>
+      </>
+    );
+  }
+  return (
+    <section className="section">
+      <div className="section-head">
+        <h2>Sync across devices</h2>
+      </div>
+      {body}
+      {c.error && <p className="sync-error small">{c.error}</p>}
+    </section>
   );
 }
 

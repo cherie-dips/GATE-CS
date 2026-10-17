@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "12.19.0",
     "katex": "0.16.11",
     "marked": "12.0.2",
     "react": "18.3.1",

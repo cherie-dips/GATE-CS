@@ -268,6 +268,38 @@ code {
   padding-bottom: 72px;
 }
 
+/* ------------------------------------------------------------------ account */
+
+.avatar {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--ink-text);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+.avatar.error::after,
+.avatar.offline::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--warn);
+}
+.sync-error {
+  margin-top: 10px;
+  color: var(--bad);
+}
+
 /* ------------------------------------------------------------------ controls */
 
 .btn {

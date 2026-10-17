@@ -5,7 +5,8 @@ Every question has a cross-checked answer and a worked explanation. A local web 
 tracks your progress.
 
 **Live site:** <https://cherie-dips.github.io/GATE-CS/>. On the hosted site your progress is kept in the
-browser's local storage, so use **Progress → Export progress** to back it up or move it to another device.
+browser's local storage. Sign in to sync it across devices (see [Sync across devices](#sync-across-devices-google-sign-in)),
+or use **Progress → Export progress** to back it up.
 Running it locally (below) saves progress to a file instead.
 
 ## Run it
@@ -21,6 +22,27 @@ from **Progress → Your data**.
 
 `npm run dev` runs a Vite dev server on :5173 with hot reload. Keep `npm start` running alongside it so progress
 still gets saved.
+
+## Sync across devices (Google sign-in)
+
+Once it is set up, a **Sign in** button appears in the top bar. Sign in with the same Google account on each device. The
+first time you sign in on a device, that device's progress is merged with your account's. After that it syncs
+automatically: a couple of seconds after each change, and whenever you return to the tab. Signing out keeps the copy on
+that device. Your progress is stored in your own Firebase project, and the security rules in `firestore.rules` let
+only your signed-in account read or write it. Firebase's free tier is far more than one person needs.
+
+One-time setup in the [Firebase console](https://console.firebase.google.com), with your Google account:
+
+1. **Create a project** (any name, e.g. `gate-pyq`). Google Analytics is not needed.
+2. **Authentication** → Get started → Sign-in method → **Google** → Enable → choose a support email → Save.
+3. **Authentication → Settings → Authorized domains** → Add domain → `cherie-dips.github.io` (`localhost` is listed
+   already, so the local app works too).
+4. **Firestore Database** → Create database → pick a location near you (e.g. Mumbai, `asia-south1`) → production
+   mode. In its **Rules** tab, replace the rules with the contents of [`firestore.rules`](firestore.rules) → Publish.
+5. **Project settings** (gear icon) → General → Your apps → add a **Web app** (`</>`); Firebase Hosting is not needed.
+   Copy the `firebaseConfig` object it shows into [`app/src/lib/firebase-config.js`](app/src/lib/firebase-config.js),
+   replacing `null`. These values identify the project; they are not secrets.
+6. Rebuild: `npm run setup` for the local app, or push to `main` to update the hosted site.
 
 ## Status (2026-10-17)
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { loadBank, computeStats } from './lib/data.js';
 import { loadProgress, useProgress, setSetting } from './lib/progress.js';
+import { initCloud, signIn, useCloud } from './lib/cloud.js';
 import { useRoute, navigate, href } from './lib/router.js';
 import { Icon } from './components/ui.jsx';
 import Home from './views/Home.jsx';
@@ -20,7 +21,10 @@ export default function App() {
 
   useEffect(() => {
     Promise.all([loadBank(), loadProgress()])
-      .then(([b]) => setBank(b))
+      .then(([b]) => {
+        setBank(b);
+        initCloud();
+      })
       .catch((e) => setError(String(e.message || e)));
   }, []);
 
@@ -120,8 +124,30 @@ function Header({ section, theme }) {
           <button className="icon-btn" onClick={() => setSetting('theme', THEME_NEXT[theme])} title={`Theme: ${theme} (click to change)`} aria-label={`Theme: ${theme}`}>
             <Icon name={THEME_ICON[theme]} size={18} />
           </button>
+          <Account />
         </div>
       </div>
     </header>
+  );
+}
+
+const SYNC_LABEL = { syncing: 'Syncing…', synced: 'Synced', offline: 'Offline', error: 'Sync problem' };
+
+function Account() {
+  const c = useCloud();
+  if (c.status === 'off') return null;
+  if (!c.user) {
+    return (
+      <button className="btn small" onClick={signIn} disabled={c.status === 'loading'}>
+        Sign in
+      </button>
+    );
+  }
+  const who = c.user.email || c.user.name || 'your account';
+  const label = SYNC_LABEL[c.status] || '';
+  return (
+    <a className={`avatar ${c.status}`} href="#/progress" title={`${who} · ${label}`} aria-label={`Signed in as ${who}. ${label}`}>
+      {(c.user.name || c.user.email || '?').trim()[0].toUpperCase()}
+    </a>
   );
 }

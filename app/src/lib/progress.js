@@ -1,5 +1,5 @@
 // Progress store: attempts, bookmarks, revision flags, notes and an activity log.
-// Saved to the local server (data/progress.json) and mirrored to localStorage.
+// Saved to the local server (data/progress.json) and mirrored to localStorage; cloud.js adds optional sync.
 import { useSyncExternalStore } from 'react';
 
 const LS_KEY = 'gate-pyq-progress-v1';
@@ -10,6 +10,7 @@ function empty() {
 
 let state = empty();
 let listeners = new Set();
+let changeListeners = new Set(); // notified of changes made on this device (not of states adopted from the cloud)
 let serverOk = null; // null = unknown, true/false after first contact
 let saveTimer = null;
 let saveStatus = 'idle';
@@ -18,7 +19,7 @@ function emit() {
   for (const l of listeners) l();
 }
 
-function normalize(p) {
+export function normalize(p) {
   const base = empty();
   if (!p || typeof p !== 'object') return base;
   return { ...base, ...p, settings: { ...base.settings, ...(p.settings || {}) } };
@@ -93,6 +94,85 @@ function update(fn) {
   state = next;
   scheduleSave();
   emit();
+  localChanged();
+}
+
+function localChanged() {
+  for (const l of changeListeners) l();
+}
+
+export function getState() {
+  return state;
+}
+
+export function onLocalChange(cb) {
+  changeListeners.add(cb);
+  return () => changeListeners.delete(cb);
+}
+
+/** Adopt a progress document that came from the cloud: saved locally, but not echoed back as a local change. */
+export function replaceState(next) {
+  state = normalize(next);
+  scheduleSave();
+  emit();
+}
+
+/**
+ * Combine two copies of the progress that were both edited since they were last in sync (e.g. on two devices).
+ * Attempts keep the latest try per question (and the earliest first try), flags and notes are united, logs are
+ * merged without duplicates, and settings come from the copy edited last. Removals made on one side while the
+ * other side was also edited can come back; that is the price of not keeping deletion records.
+ */
+export function mergeProgress(a, b) {
+  a = normalize(a);
+  b = normalize(b);
+  const [older, newer] = (a.updatedAt || 0) <= (b.updatedAt || 0) ? [a, b] : [b, a];
+  const attempts = { ...older.attempts };
+  for (const [q, x] of Object.entries(newer.attempts)) {
+    const y = attempts[q];
+    if (!y) {
+      attempts[q] = x;
+      continue;
+    }
+    const latest = (x.at || 0) >= (y.at || 0) ? x : y;
+    const earliest = (x.firstAt || x.at || 0) <= (y.firstAt || y.at || 0) ? x : y;
+    attempts[q] = { ...latest, first: earliest.first, firstAt: earliest.firstAt, n: Math.max(x.n || 0, y.n || 0), t: Math.max(x.t || 0, y.t || 0) };
+  }
+  const seen = new Set();
+  const log = [...older.log, ...newer.log]
+    .filter((e) => {
+      const k = `${e.q}|${e.at}|${e.r}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .sort((x, y) => x.at - y.at);
+  const testHistory = { ...(older.testHistory || {}) };
+  for (const [p, h] of Object.entries(newer.testHistory || {})) {
+    const byAt = new Map([...(testHistory[p] || []), ...h].map((x) => [x.at, x]));
+    testHistory[p] = [...byAt.values()].sort((x, y) => x.at - y.at);
+  }
+  // an unfinished mock test survives unless that paper has a result submitted after it started
+  const tests = {};
+  for (const [p, tst] of Object.entries({ ...(older.tests || {}), ...(newer.tests || {}) })) {
+    const finished = (testHistory[p] || []).some((h) => h.at >= (tst.startedAt || 0));
+    if (!finished) tests[p] = tst;
+  }
+  const last = [older.last, newer.last].filter(Boolean).sort((x, y) => (y.at || 0) - (x.at || 0))[0] || null;
+  return {
+    ...older,
+    ...newer,
+    attempts,
+    bookmarks: { ...older.bookmarks, ...newer.bookmarks },
+    revise: { ...older.revise, ...newer.revise },
+    notes: { ...older.notes, ...newer.notes },
+    log,
+    testHistory,
+    tests,
+    last,
+    settings: { ...older.settings, ...newer.settings },
+    updatedAt: Math.max(a.updatedAt || 0, b.updatedAt || 0),
+  };
 }
 
 // ------------------------------------------------------------------ actions
@@ -215,12 +295,14 @@ export function resetProgress() {
   state = { ...empty(), settings: state.settings, updatedAt: Date.now() };
   scheduleSave();
   emit();
+  localChanged();
 }
 
 export function importProgress(obj) {
   state = { ...normalize(obj), updatedAt: Date.now() };
   scheduleSave();
   emit();
+  localChanged();
 }
 
 export function exportProgress() {
