@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { pct, applyFilters, parseFilters } from '../lib/data.js';
 import { href } from '../lib/router.js';
 import { Bar, Icon } from '../components/ui.jsx';
+import { sheetIds } from '../lib/sheets.js';
 
 export default function SubjectView({ bank, progress, stats, id }) {
   const subject = bank.subjectById.get(id);
@@ -28,6 +29,11 @@ export default function SubjectView({ bank, progress, stats, id }) {
           </p>
         </div>
         <div className="actions">
+          {sheetIds.has(id) && (
+            <a className="btn" href={href(`/sheets/${id}`)}>
+              Cheatsheet
+            </a>
+          )}
           {ss.wrong > 0 && (
             <a className="btn" href={href('/list', `s=${id}&st=wrong`)}>
               Retry mistakes

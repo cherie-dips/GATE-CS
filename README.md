@@ -64,7 +64,7 @@ All 520 questions from GATE 2022–2026 match the official IIT answer keys, whic
 
 ## What's inside the app
 
-The top bar has four sections:
+The top bar has five sections:
 
 - **Practice**: overall progress, *Continue where you left off*, a random unsolved question, and the subject list.
   A subject opens its chapters, and a chapter opens its questions.
@@ -78,6 +78,10 @@ The top bar has four sections:
   - Keyboard shortcuts: `A–D` select, `Enter` check / next, `←/→` navigate, `S` solution, `B` bookmark, `R` revise.
 - **Papers**: every paper by year. Solve it question by question, or take it as a timed mock test with GATE
   marking and a question palette.
+- **Cheatsheets**: formulas and key facts for every subject, arranged by the same chapters as the questions.
+  Each sheet has a chapter bar and a filter box, and the index page searches all sheets at once. Subject pages and
+  questions link to the matching sheet. The sheets are Markdown files in `app/src/sheets/` (`## Chapter {#chapter-id}`,
+  then `### Topic` sections).
 - **Review**: your mistakes, bookmarks, questions flagged for revision, and questions with notes.
 - **Progress**: questions solved, accuracy, streak and practice time; a subject → chapter breakdown; settings;
   and export / import / reset of your progress.

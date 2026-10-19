@@ -11,6 +11,7 @@ import Practice from './views/Practice.jsx';
 import Papers from './views/Papers.jsx';
 import Progress from './views/Progress.jsx';
 import TestView from './views/TestView.jsx';
+import Sheets from './views/Sheets.jsx';
 
 export default function App() {
   const [bank, setBank] = useState(null);
@@ -71,6 +72,7 @@ export default function App() {
   else if (section === 'papers') view = <Papers {...props} />;
   else if (section === 'progress' || section === 'tracker') view = <Progress {...props} />;
   else if (section === 'test') view = <TestView key={arg} {...props} paperId={arg} />;
+  else if (section === 'sheets') view = <Sheets bank={bank} id={arg} query={route.query} />;
   else view = <Home {...props} />;
 
   return (
@@ -89,6 +91,7 @@ function Header({ section, theme }) {
   const links = [
     ['#/', 'Practice', !section || ['subject', 'list', 'q'].includes(section)],
     ['#/papers', 'Papers', section === 'papers' || section === 'test'],
+    ['#/sheets', <><span className="wide-only">Cheatsheets</span><span className="narrow-only">Sheets</span></>, section === 'sheets'],
     ['#/review', 'Review', section === 'review'],
     ['#/progress', 'Progress', section === 'progress' || section === 'tracker'],
   ];
