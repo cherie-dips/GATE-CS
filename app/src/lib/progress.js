@@ -1,11 +1,11 @@
-// Progress store: attempts, bookmarks, revision flags, notes and an activity log.
+// Progress store: attempts, bookmarks, revision flags, notes, finished lessons and an activity log.
 // Saved to the local server (data/progress.json) and mirrored to localStorage; cloud.js adds optional sync.
 import { useSyncExternalStore } from 'react';
 
 const LS_KEY = 'gate-pyq-progress-v1';
 
 function empty() {
-  return { version: 1, updatedAt: 0, attempts: {}, bookmarks: {}, revise: {}, notes: {}, log: [], last: null, settings: {} };
+  return { version: 1, updatedAt: 0, attempts: {}, bookmarks: {}, revise: {}, notes: {}, learned: {}, log: [], last: null, settings: {} };
 }
 
 let state = empty();
@@ -166,6 +166,7 @@ export function mergeProgress(a, b) {
     bookmarks: { ...older.bookmarks, ...newer.bookmarks },
     revise: { ...older.revise, ...newer.revise },
     notes: { ...older.notes, ...newer.notes },
+    learned: { ...older.learned, ...newer.learned },
     log,
     testHistory,
     tests,
@@ -221,6 +222,15 @@ export function toggleRevise(qid) {
     if (b[qid]) delete b[qid];
     else b[qid] = Date.now();
     s.revise = b;
+  });
+}
+
+export function toggleLearned(key) {
+  update((s) => {
+    const l = { ...s.learned };
+    if (l[key]) delete l[key];
+    else l[key] = Date.now();
+    s.learned = l;
   });
 }
 

@@ -14,6 +14,9 @@ pipeline/work/
 __pycache__/
 *.py[cod]
 
+# Reference books and papers (copyrighted; kept locally)
+*.pdf
+
 # Logs and environment
 *.log
 npm-debug.log*

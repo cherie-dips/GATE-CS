@@ -3,9 +3,10 @@ import Content from '../components/Content.jsx';
 import { Icon } from '../components/ui.jsx';
 import { href, navigate } from '../lib/router.js';
 import { loadAllSheets, loadSheet, matchTopics, sheetIds } from '../lib/sheets.js';
+import { lessonSubjects } from '../lib/lessons.js';
 
 export default function Sheets({ bank, id, query }) {
-  return id ? <Sheet bank={bank} id={id} chapterId={query.get('c')} /> : <SheetIndex bank={bank} />;
+  return <Sheet bank={bank} id={id} chapterId={query.get('c')} />;
 }
 
 function useSheet(id) {
@@ -21,7 +22,8 @@ function useSheet(id) {
   return sheet;
 }
 
-function SheetIndex({ bank }) {
+/** Searchable list of all cheatsheets (shown on the Learn page). */
+export function CheatsheetIndex({ bank }) {
   const [q, setQ] = useState('');
   const [all, setAll] = useState(null);
   const subjects = useMemo(() => bank.subjects.filter((s) => sheetIds.has(s.id)), [bank]);
@@ -37,12 +39,7 @@ function SheetIndex({ bank }) {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>Cheatsheets</h1>
-          <p className="sub">Formulas and key facts for each subject, chapter by chapter.</p>
-        </div>
-      </div>
+      <p className="sub sheet-index-sub">Formulas and key facts for each subject, chapter by chapter.</p>
       <Filter value={q} onChange={setQ} placeholder="Search all cheatsheets, e.g. eigenvalue, CSMA, 3NF" />
 
       {q.trim() ? (
@@ -97,8 +94,8 @@ function Sheet({ bank, id, chapterId }) {
 
   return (
     <div>
-      <a className="back" href={href('/sheets')}>
-        <Icon name="left" size={14} /> Cheatsheets
+      <a className="back" href={href('/learn')}>
+        <Icon name="left" size={14} /> Learn
       </a>
       <div className="page-head">
         <div>
@@ -106,6 +103,11 @@ function Sheet({ bank, id, chapterId }) {
           <p className="sub">Cheatsheet</p>
         </div>
         <div className="actions">
+          {lessonSubjects.has(id) && (
+            <a className="btn" href={href(`/learn/${id}`)}>
+              Lessons
+            </a>
+          )}
           <a className="btn" href={href(`/subject/${id}`)}>
             Practice questions
           </a>

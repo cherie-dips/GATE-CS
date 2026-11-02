@@ -78,10 +78,17 @@ The top bar has five sections:
   - Keyboard shortcuts: `A–D` select, `Enter` check / next, `←/→` navigate, `S` solution, `B` bookmark, `R` revise.
 - **Papers**: every paper by year. Solve it question by question, or take it as a timed mock test with GATE
   marking and a question palette.
-- **Cheatsheets**: formulas and key facts for every subject, arranged by the same chapters as the questions.
-  Each sheet has a chapter bar and a filter box, and the index page searches all sheets at once. Subject pages and
-  questions link to the matching sheet. The sheets are Markdown files in `app/src/sheets/` (`## Chapter {#chapter-id}`,
-  then `### Topic` sections).
+- **Learn**: step-by-step lessons and cheatsheets.
+  - **Lessons** (Engineering Mathematics so far) teach each topic from scratch in plain words, with worked examples,
+    common traps, how GATE asks it, a quick check with hidden answers, and links to real GATE questions. *Mark as done*
+    tracks finished lessons, and the progress syncs with the rest of your progress. The lessons are Markdown files
+    in `app/src/lessons/<subject>/<chapter>.md` (`# Chapter`, then `## Lesson {#lesson-id}`, then `### Section`).
+    A blockquote that starts with `**Idea:**`, `**Example:**`, `**Watch out:**`, `**GATE tip:**` or `**Remember:**`
+    is shown as a coloured box.
+  - **Cheatsheets** give formulas and key facts for every subject, arranged by the same chapters as the questions.
+    Each sheet has a chapter bar and a filter box, and the Learn page searches all sheets at once. The sheets are
+    Markdown files in `app/src/sheets/` (`## Chapter {#chapter-id}`, then `### Topic` sections).
+  - Subject pages and questions link to the matching lessons and cheatsheet.
 - **Review**: your mistakes, bookmarks, questions flagged for revision, and questions with notes.
 - **Progress**: questions solved, accuracy, streak and practice time; a subject → chapter breakdown; settings;
   and export / import / reset of your progress.

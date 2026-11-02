@@ -3,6 +3,7 @@ import { pct, applyFilters, parseFilters } from '../lib/data.js';
 import { href } from '../lib/router.js';
 import { Bar, Icon } from '../components/ui.jsx';
 import { sheetIds } from '../lib/sheets.js';
+import { lessonSubjects } from '../lib/lessons.js';
 
 export default function SubjectView({ bank, progress, stats, id }) {
   const subject = bank.subjectById.get(id);
@@ -29,6 +30,11 @@ export default function SubjectView({ bank, progress, stats, id }) {
           </p>
         </div>
         <div className="actions">
+          {lessonSubjects.has(id) && (
+            <a className="btn" href={href(`/learn/${id}`)}>
+              Lessons
+            </a>
+          )}
           {sheetIds.has(id) && (
             <a className="btn" href={href(`/sheets/${id}`)}>
               Cheatsheet

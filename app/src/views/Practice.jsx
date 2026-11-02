@@ -6,6 +6,7 @@ import { recordAttempt, toggleBookmark, toggleRevise, setNote, setLast, clearAtt
 import { href, navigate } from '../lib/router.js';
 import { REVIEW_TABS } from './ListView.jsx';
 import { sheetIds } from '../lib/sheets.js';
+import { hasLessons } from '../lib/lessons.js';
 
 // The practice list is frozen per filter set so that solving a question doesn't reshuffle "next".
 const listCache = { key: null, ids: [] };
@@ -217,6 +218,11 @@ function QuestionCard({ bank, q, progress, pos, total, onPrev, onNext, back, sta
         {chapter && (
           <Tag href={href('/list', `s=${q.s}&c=${q.c}`)} title="All questions in this chapter">
             {chapter.name}
+          </Tag>
+        )}
+        {chapter && hasLessons(q.s, q.c) && (
+          <Tag href={href(`/learn/${q.s}`, `c=${q.c}`)} title="Step-by-step lessons for this chapter">
+            Lessons
           </Tag>
         )}
         {chapter && sheetIds.has(q.s) && (
